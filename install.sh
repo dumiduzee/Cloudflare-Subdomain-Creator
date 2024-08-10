@@ -15,15 +15,18 @@ VPS_IP=$(curl -s ifconfig.me)
 # Extract the domain name from the subdomain
 DOMAIN=$(echo $SUBDOMAIN | awk -F'.' '{print $(NF-1)"."$NF}')
 
-# Set the Zone ID and ensure only one Zone ID is retrieved
+# Get the Zone ID and ensure it's a single value
 ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN" \
     -H "X-Auth-Email: $CF_EMAIL" \
     -H "X-Auth-Key: $CF_API_KEY" \
     -H "Content-Type: application/json" | jq -r '.result[0].id')
 
-# Check if the Zone ID was retrieved successfully
+# Check if the Zone ID was retrieved successfully and only one ID was retrieved
 if [[ -z "$ZONE_ID" ]]; then
-    echo "Failed to retrieve Zone ID. Exiting."
+    echo "Error: Failed to retrieve Zone ID. Exiting."
+    exit 1
+elif [[ $(echo "$ZONE_ID" | wc -l) -ne 1 ]]; then
+    echo "Error: Multiple Zone IDs retrieved. Exiting."
     exit 1
 fi
 
