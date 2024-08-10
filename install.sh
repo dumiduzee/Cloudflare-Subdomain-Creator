@@ -1,8 +1,8 @@
 #!/bin/bash
 
-echo "Insatalling sudo apt-get install -y jq"
+# Install jq if not already installed
+echo "Installing jq..."
 sudo apt-get install -y jq
-
 
 # Get user input
 read -p "Enter the Cloudflare API key: " CF_API_KEY
@@ -15,11 +15,17 @@ VPS_IP=$(curl -s ifconfig.me)
 # Extract the domain name from the subdomain
 DOMAIN=$(echo $SUBDOMAIN | awk -F'.' '{print $(NF-1)"."$NF}')
 
-# Set the Zone ID
+# Set the Zone ID and ensure only one Zone ID is retrieved
 ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN" \
     -H "X-Auth-Email: $CF_EMAIL" \
     -H "X-Auth-Key: $CF_API_KEY" \
-    -H "Content-Type: application/json" | grep -oP '"id":"\K[^"]+')
+    -H "Content-Type: application/json" | jq -r '.result[0].id')
+
+# Check if the Zone ID was retrieved successfully
+if [[ -z "$ZONE_ID" ]]; then
+    echo "Failed to retrieve Zone ID. Exiting."
+    exit 1
+fi
 
 echo "Domain: $DOMAIN"
 echo "Zone ID: $ZONE_ID"
