@@ -28,16 +28,16 @@ fi
 echo "Domain: $DOMAIN"
 echo "Zone ID: $ZONE_ID"
 
-# Create the DNS record
+# Create the DNS record with TTL set to Auto (1)
 RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
     -H "X-Auth-Email: $CF_EMAIL" \
     -H "X-Auth-Key: $CF_API_KEY" \
     -H "Content-Type: application/json" \
-    --data "{\"type\":\"A\",\"name\":\"$SUBDOMAIN\",\"content\":\"$VPS_IP\",\"ttl\":120,\"proxied\":false}")
+    --data "{\"type\":\"A\",\"name\":\"$SUBDOMAIN\",\"content\":\"$VPS_IP\",\"ttl\":1,\"proxied\":false}")
 
 # Check if the record was created successfully
 if [[ "$RESPONSE" == *'"success":true'* ]]; then
-    echo "Subdomain $SUBDOMAIN created successfully."
+    echo "Subdomain $SUBDOMAIN created successfully with TTL set to Auto."
 else
     echo "Failed to create subdomain. Response from Cloudflare: $RESPONSE"
 fi
